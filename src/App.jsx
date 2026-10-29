@@ -5,8 +5,10 @@ import { setupAxiosInterceptors } from './api/axiosClient';
 import { Login } from './pages/Login';
 import { Catalog } from './pages/Catalog';
 import { Requests } from './pages/Requests';
+import { Notifications } from './pages/Notifications';
 import { Audit } from './pages/Audit';
 import { Dashboard } from './pages/Dashboard';
+import { FieldRequests } from './pages/FieldRequests';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
@@ -47,13 +49,17 @@ export default function App() {
   const canAccessDashboard = true; // Todos los autenticados
   const canAccessCatalog = userRoles.includes('Admin') || userRoles.includes('Funcionario');
   const canAccessRequests = userRoles.includes('Admin') || userRoles.includes('Funcionario') || userRoles.includes('Vecino');
+  const canAccessFieldRequests = userRoles.includes('Admin') || userRoles.includes('Cuadrilla');
+  const canAccessNotifications = userRoles.includes('Admin') || userRoles.includes('Funcionario') || userRoles.includes('Vecino');
   const canAccessAudit = userRoles.includes('Admin') || userRoles.includes('Auditor');
 
   const getHomeRoute = () => {
     if (!isAuthenticated) return "/login";
     if (canAccessDashboard) return "/dashboard";
+    if (canAccessFieldRequests) return "/field-requests";
     if (canAccessCatalog) return "/catalog";
     if (canAccessRequests) return "/requests";
+    if (canAccessNotifications) return "/notifications";
     if (canAccessAudit) return "/audit";
     return "/login";
   };
@@ -75,6 +81,18 @@ export default function App() {
           {canAccessRequests && (
             <Link to="/requests" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
               Solicitudes
+            </Link>
+          )}
+
+          {canAccessFieldRequests && (
+            <Link to="/field-requests" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
+              Solicitudes en Terreno
+            </Link>
+          )}
+
+          {canAccessNotifications && (
+            <Link to="/notifications" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
+              Notificaciones
             </Link>
           )}
 
@@ -104,7 +122,7 @@ export default function App() {
             path="/dashboard"
             element={
               isAuthenticated ? (
-                <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Auditor', 'Vecino']}>
+                <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Auditor', 'Vecino', 'Cuadrilla']}>
                   <Dashboard />
                 </ProtectedRoute>
               ) : (
@@ -132,6 +150,32 @@ export default function App() {
               isAuthenticated ? (
                 <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Vecino']}>
                   <Requests />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/field-requests"
+            element={
+              isAuthenticated ? (
+                <ProtectedRoute allowedRoles={['Admin', 'Cuadrilla']}>
+                  <FieldRequests />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/notifications"
+            element={
+              isAuthenticated ? (
+                <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Vecino']}>
+                  <Notifications />
                 </ProtectedRoute>
               ) : (
                 <Navigate to="/login" replace />

@@ -3,11 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { setupAxiosInterceptors } from './api/axiosClient';
 import { Login } from './pages/Login';
+import { Home } from './pages/Home';
 import { Catalog } from './pages/Catalog';
 import { Requests } from './pages/Requests';
 import { Notifications } from './pages/Notifications';
 import { Audit } from './pages/Audit';
-import { Dashboard } from './pages/Dashboard';
+import { Reports } from './pages/Reports';
 import { FieldRequests } from './pages/FieldRequests';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -46,21 +47,23 @@ export default function App() {
   const userRoles = activeAccount?.idTokenClaims?.roles || [];
 
   // Permisos por módulo
-  const canAccessDashboard = true; // Todos los autenticados
+  const canAccessHome = true; // Todos los autenticados
   const canAccessCatalog = userRoles.includes('Admin') || userRoles.includes('Funcionario');
   const canAccessRequests = userRoles.includes('Admin') || userRoles.includes('Funcionario') || userRoles.includes('Vecino');
   const canAccessFieldRequests = userRoles.includes('Admin') || userRoles.includes('Cuadrilla');
   const canAccessNotifications = userRoles.includes('Admin') || userRoles.includes('Funcionario') || userRoles.includes('Vecino');
   const canAccessAudit = userRoles.includes('Admin') || userRoles.includes('Auditor');
+  const canAccessReports = true; // Todos los autenticados (mismo alcance que tenía Dashboard)
 
   const getHomeRoute = () => {
     if (!isAuthenticated) return "/login";
-    if (canAccessDashboard) return "/dashboard";
+    if (canAccessHome) return "/inicio";
     if (canAccessFieldRequests) return "/field-requests";
     if (canAccessCatalog) return "/catalog";
     if (canAccessRequests) return "/requests";
     if (canAccessNotifications) return "/notifications";
     if (canAccessAudit) return "/audit";
+    if (canAccessReports) return "/reports";
     return "/login";
   };
 
@@ -68,7 +71,7 @@ export default function App() {
     <BrowserRouter>
       {isAuthenticated && (
         <nav style={{ display: 'flex', gap: '15px', padding: '15px', backgroundColor: '#eef2f5', alignItems: 'center' }}>
-          <Link to="/dashboard" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
+          <Link to="/inicio" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
             Inicio
           </Link>
 
@@ -102,6 +105,12 @@ export default function App() {
             </Link>
           )}
 
+          {canAccessReports && (
+            <Link to="/reports" style={{ fontWeight: 'bold', textDecoration: 'none', color: '#0078d4' }}>
+              Reportes
+            </Link>
+          )}
+
           <span style={{ marginLeft: 'auto', fontWeight: 'bold', color: '#333' }}>
             Usuario: {activeAccount?.name || activeAccount?.username}
           </span>
@@ -119,11 +128,11 @@ export default function App() {
           />
 
           <Route
-            path="/dashboard"
+            path="/inicio"
             element={
               isAuthenticated ? (
                 <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Auditor', 'Vecino', 'Cuadrilla']}>
-                  <Dashboard />
+                  <Home />
                 </ProtectedRoute>
               ) : (
                 <Navigate to="/login" replace />
@@ -189,6 +198,19 @@ export default function App() {
               isAuthenticated ? (
                 <ProtectedRoute allowedRoles={['Admin', 'Auditor']}>
                   <Audit />
+                </ProtectedRoute>
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              isAuthenticated ? (
+                <ProtectedRoute allowedRoles={['Admin', 'Funcionario', 'Auditor', 'Vecino', 'Cuadrilla']}>
+                  <Reports />
                 </ProtectedRoute>
               ) : (
                 <Navigate to="/login" replace />
